@@ -4,6 +4,7 @@ import io.pivotal.pal.tracker.InMemoryTimeEntryRepository;
 import io.pivotal.pal.tracker.TimeEntry;
 import org.junit.Test;
 
+import java.rmi.NoSuchObjectException;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -61,6 +62,7 @@ public class InMemoryTimeEntryRepositoryTest {
                 new TimeEntry(1L, 123L, 456L, LocalDate.parse("2017-01-08"), 8),
                 new TimeEntry(2L, 789L, 654L, LocalDate.parse("2017-01-07"), 4)
         );
+
         assertThat(repo.list()).containsExactlyInAnyOrderElementsOf(expected);
     }
 
@@ -79,7 +81,7 @@ public class InMemoryTimeEntryRepositoryTest {
     }
 
     @Test
-    public void update_MissingEntry() {
+    public void update_MissingEntry() throws NoSuchObjectException {
         InMemoryTimeEntryRepository repo = new InMemoryTimeEntryRepository();
 
         TimeEntry updatedEntry = repo.update(

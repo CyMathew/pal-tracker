@@ -8,6 +8,7 @@ import org.junit.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
+import java.rmi.NoSuchObjectException;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -27,6 +28,7 @@ public class TimeEntryControllerTest {
         controller = new TimeEntryController(timeEntryRepository);
     }
 
+    // done
     @Test
     public void testCreate() {
         long projectId = 123L;
@@ -92,7 +94,7 @@ public class TimeEntryControllerTest {
     }
 
     @Test
-    public void testUpdate() {
+    public void testUpdate() throws NoSuchObjectException {
         long timeEntryId = 1L;
         long projectId = 987L;
         long userId = 654L;
