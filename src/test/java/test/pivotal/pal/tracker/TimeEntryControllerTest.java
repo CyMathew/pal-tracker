@@ -1,5 +1,8 @@
 package test.pivotal.pal.tracker;
 
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.DistributionSummary;
+import io.micrometer.core.instrument.MeterRegistry;
 import io.pivotal.pal.tracker.TimeEntry;
 import io.pivotal.pal.tracker.TimeEntryController;
 import io.pivotal.pal.tracker.TimeEntryRepository;
@@ -20,20 +23,42 @@ import static org.mockito.Mockito.*;
 
 public class TimeEntryControllerTest {
     private TimeEntryRepository timeEntryRepository;
+//    private DistributionSummary timeEntrySummary;
+//    private Counter actionCounter;
     private TimeEntryController controller;
 
-    @Before
-    public void setUp() {
-        timeEntryRepository = mock(TimeEntryRepository.class);
-        controller = new TimeEntryController(timeEntryRepository);
-    }
+//    @Before
+//    public void setUp() {
+//        timeEntryRepository = mock(TimeEntryRepository.class);
+//        timeEntrySummary = mock(DistributionSummary.class);
+//        actionCounter = mock(Counter.class);
+//        controller = new TimeEntryController(timeEntryRepository, meterRegistry);
+//    }
 
+    @Before
+    public void setUp() throws Exception {
+        timeEntryRepository = mock(TimeEntryRepository.class);
+        MeterRegistry meterRegistry = mock(MeterRegistry.class);
+
+        doReturn(mock(DistributionSummary.class))
+                .when(meterRegistry)
+                .summary("timeEntry.summary");
+
+        doReturn(mock(Counter.class))
+                .when(meterRegistry)
+                .counter("timeEntry.actionCounter");
+
+        controller = new TimeEntryController(timeEntryRepository, meterRegistry);
+    }
     // done
     @Test
     public void testCreate() {
         long projectId = 123L;
         long userId = 456L;
         TimeEntry timeEntryToCreate = new TimeEntry(projectId, userId, LocalDate.parse("2017-01-08"), 8);
+//        doReturn(new List<>(timeEntryRepository) {}.when()
+
+
 
         long timeEntryId = 1L;
         TimeEntry expectedResult = new TimeEntry(timeEntryId, projectId, userId, LocalDate.parse("2017-01-08"), 8);
@@ -45,6 +70,8 @@ public class TimeEntryControllerTest {
         ResponseEntity response = controller.create(timeEntryToCreate);
 
 
+//        verify(timeEntrySummary).record(timeEntryRepository.list().size());
+//        verify(actionCounter).count();
         verify(timeEntryRepository).create(timeEntryToCreate);
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
         assertThat(response.getBody()).isEqualTo(expectedResult);
