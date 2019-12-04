@@ -23,8 +23,8 @@ import static org.mockito.Mockito.*;
 
 public class TimeEntryControllerTest {
     private TimeEntryRepository timeEntryRepository;
-//    private DistributionSummary timeEntrySummary;
-//    private Counter actionCounter;
+    private DistributionSummary timeEntrySummary;
+    private Counter actionCounter;
     private TimeEntryController controller;
 
 //    @Before
@@ -40,11 +40,13 @@ public class TimeEntryControllerTest {
         timeEntryRepository = mock(TimeEntryRepository.class);
         MeterRegistry meterRegistry = mock(MeterRegistry.class);
 
-        doReturn(mock(DistributionSummary.class))
+        timeEntrySummary = mock(DistributionSummary.class);
+        doReturn(timeEntrySummary)
                 .when(meterRegistry)
                 .summary("timeEntry.summary");
 
-        doReturn(mock(Counter.class))
+        actionCounter = mock(Counter.class);
+        doReturn(actionCounter)
                 .when(meterRegistry)
                 .counter("timeEntry.actionCounter");
 
@@ -70,8 +72,8 @@ public class TimeEntryControllerTest {
         ResponseEntity response = controller.create(timeEntryToCreate);
 
 
-//        verify(timeEntrySummary).record(timeEntryRepository.list().size());
-//        verify(actionCounter).count();
+        verify(timeEntrySummary, times(1)).record(anyDouble());
+        verify(actionCounter, times(1)).increment();
         verify(timeEntryRepository).create(timeEntryToCreate);
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
         assertThat(response.getBody()).isEqualTo(expectedResult);
@@ -89,6 +91,7 @@ public class TimeEntryControllerTest {
 
         ResponseEntity<TimeEntry> response = controller.read(timeEntryId);
 
+        verify(actionCounter, times(1)).increment();
         verify(timeEntryRepository).find(timeEntryId);
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody()).isEqualTo(expected);
@@ -101,6 +104,7 @@ public class TimeEntryControllerTest {
             .when(timeEntryRepository)
             .find(nonExistentTimeEntryId);
 
+        verify(actionCounter, times(0)).increment();
         ResponseEntity<TimeEntry> response = controller.read(nonExistentTimeEntryId);
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
     }
@@ -115,6 +119,7 @@ public class TimeEntryControllerTest {
 
         ResponseEntity<List<TimeEntry>> response = controller.list();
 
+        verify(actionCounter, times(1)).increment();
         verify(timeEntryRepository).list();
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody()).isEqualTo(expected);
@@ -132,6 +137,7 @@ public class TimeEntryControllerTest {
 
         ResponseEntity response = controller.update(timeEntryId, expected);
 
+        verify(actionCounter, times(1)).increment();
         verify(timeEntryRepository).update(timeEntryId, expected);
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody()).isEqualTo(expected);
@@ -145,13 +151,19 @@ public class TimeEntryControllerTest {
             .update(eq(nonExistentTimeEntryId), any(TimeEntry.class));
 
         ResponseEntity response = controller.update(nonExistentTimeEntryId, new TimeEntry());
+
+        verify(actionCounter, times(0)).increment();
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
     }
 
     @Test
     public void testDelete() {
         long timeEntryId = 1L;
+
         ResponseEntity response = controller.delete(timeEntryId);
+
+        verify(actionCounter, times(1)).increment();
+        verify(timeEntrySummary, times(1)).record(anyDouble());
         verify(timeEntryRepository).delete(timeEntryId);
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
     }

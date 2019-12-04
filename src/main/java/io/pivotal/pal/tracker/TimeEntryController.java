@@ -56,10 +56,10 @@ public class TimeEntryController {
         TimeEntry updated = timeEntryRepository.update(timeEntryId, timeEntry);
 
         if (updated == null) {
-            actionCounter.increment();
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
 
+        actionCounter.increment();
         return new ResponseEntity<>(updated, HttpStatus.OK);
     }
 
